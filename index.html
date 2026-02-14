@@ -11,6 +11,7 @@
     .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     .ok{background:#e7ffe7;padding:12px;border:1px solid #9be09b;margin-top:12px;display:none}
     .err{background:#ffe7e7;padding:12px;border:1px solid #e09b9b;margin-top:12px;display:none}
+    .hint{font-size:13px;opacity:.8;margin-top:6px}
     button{cursor:pointer}
   </style>
 </head>
@@ -47,7 +48,7 @@
       </div>
       <div>
         <label>Barbeiro</label>
-        <select name="barber" required>
+        <select id="barber" name="barber" required>
           <option value="Pedro">Pedro Neves</option>
           <option value="Joao">Joao Leite</option>
         </select>
@@ -57,32 +58,112 @@
     <div class="row">
       <div>
         <label>Data</label>
-        <input name="date" type="date" required>
+        <input id="date" name="date" type="date" required>
       </div>
       <div>
-        <label>Hora</label>
-        <input name="time" type="time" required>
+        <label>Hora (disponível)</label>
+        <!-- trocámos input time por select -->
+        <select id="time" name="time" required>
+          <option value="">Escolhe data/barbeiro…</option>
+        </select>
+        <div class="hint" id="timeHint">Escolhe a data e o barbeiro para ver horários livres.</div>
       </div>
     </div>
 
     <label>Duração (min)</label>
-    <input name="dur" type="number" min="10" max="240" step="5" value="30" required>
+    <input id="dur" name="dur" type="number" min="10" max="240" step="5" value="30" required>
+    <div class="hint">Só aparecem horários válidos (ex: 14:30, 14:35…)</div>
 
     <label>Notas (opcional)</label>
     <textarea name="notes" rows="4" placeholder="Ex: atrasado 10 min, etc"></textarea>
 
-    <button type="submit">Marcar</button>
+    <button id="btn" type="submit">Marcar</button>
   </form>
 
   <script>
-    // 👇 Mete aqui o teu Render URL
-    const API_BASE = "https://barbearia-api-ki25.onrender.com/";
+    // 👇 Mete aqui o teu Render URL (SEM barra no fim)
+    const API_BASE = "https://barbearia-api-ki25.onrender.com";
 
     const ok = document.getElementById('ok');
     const err = document.getElementById('err');
+    const btn = document.getElementById('btn');
+
+    const dateEl = document.getElementById('date');
+    const barberEl = document.getElementById('barber');
+    const durEl = document.getElementById('dur');
+    const timeEl = document.getElementById('time');
+    const timeHint = document.getElementById('timeHint');
 
     function show(el, text) { el.textContent = text; el.style.display = 'block'; }
     function hide(el) { el.style.display = 'none'; }
+
+    function setTimeOptions(items, placeholder) {
+      timeEl.innerHTML = "";
+      const opt0 = document.createElement("option");
+      opt0.value = "";
+      opt0.textContent = placeholder || "Escolhe…";
+      timeEl.appendChild(opt0);
+
+      for (const t of items) {
+        const o = document.createElement("option");
+        o.value = t;
+        o.textContent = t;
+        timeEl.appendChild(o);
+      }
+    }
+
+    async function loadSlots() {
+      hide(ok); hide(err);
+
+      const date = dateEl.value;
+      const barber = barberEl.value;
+      const dur = durEl.value || 30;
+
+      if (!date || !barber) {
+        setTimeOptions([], "Escolhe data/barbeiro…");
+        timeHint.textContent = "Escolhe a data e o barbeiro para ver horários livres.";
+        return;
+      }
+
+      timeHint.textContent = "A carregar horários...";
+      setTimeOptions([], "A carregar...");
+
+      try {
+        const url = `${API_BASE}/slots?date=${encodeURIComponent(date)}&barber=${encodeURIComponent(barber)}&dur=${encodeURIComponent(dur)}`;
+        const r = await fetch(url);
+        const j = await r.json().catch(()=> ({}));
+
+        if (!r.ok || !j.ok) throw new Error(j.error || ("Erro HTTP " + r.status));
+
+        if (!j.slots || !j.slots.length) {
+          setTimeOptions([], "Sem vagas nesse dia");
+          timeHint.textContent = "Não há horários livres para essa duração/barbeiro nesse dia.";
+          return;
+        }
+
+        setTimeOptions(j.slots, "Seleciona uma hora");
+        timeHint.textContent = "Horários atualizados. Escolhe uma hora livre.";
+      } catch (ex) {
+        setTimeOptions([], "Erro a carregar");
+        timeHint.textContent = "Não foi possível carregar horários. Tenta de novo.";
+        show(err, "❌ Erro a carregar horários: " + ex.message);
+      }
+    }
+
+    // Atualiza slots quando muda data/barbeiro/duração
+    dateEl.addEventListener("change", loadSlots);
+    barberEl.addEventListener("change", loadSlots);
+    durEl.addEventListener("change", loadSlots);
+
+    // (opcional) meter data de hoje automaticamente
+    (function initDate(){
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth()+1).padStart(2,'0');
+      const dd = String(today.getDate()).padStart(2,'0');
+      if (!dateEl.value) dateEl.value = `${yyyy}-${mm}-${dd}`;
+      loadSlots();
+    })();
 
     document.getElementById('f').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -91,8 +172,11 @@
       const fd = new FormData(e.target);
       const payload = Object.fromEntries(fd.entries());
 
-      // normaliza hora HH:MM
+      // time vem do select já em HH:MM
       if (payload.time && payload.time.length >= 5) payload.time = payload.time.slice(0,5);
+
+      btn.disabled = true;
+      btn.textContent = "A marcar...";
 
       try {
         const r = await fetch(API_BASE + "/book", {
@@ -100,15 +184,41 @@
           headers: {"Content-Type":"application/json"},
           body: JSON.stringify(payload)
         });
+
         const data = await r.json().catch(()=> ({}));
+
+        // conflito -> 409 com { ok:false, error:"conflict", conflict_with:{...}}
+        if (r.status === 409 && data && data.error === "conflict") {
+          const c = data.conflict_with || {};
+          throw new Error(`Horário ocupado. Já existe: ${c.time || "?"} (${c.dur || "?"} min) — ${c.name || ""}`);
+        }
+
         if (!r.ok) throw new Error(data.error || ("Erro HTTP " + r.status));
 
         show(ok, "✅ Marcação recebida! ID: " + (data.id || "(sem id)") + " — vai entrar na agenda em segundos.");
         e.target.reset();
+
+        // repõe data para hoje e recarrega slots
+        initDate();
       } catch (ex) {
         show(err, "❌ Não foi possível marcar: " + ex.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Marcar";
+        // recarrega slots (para tirar a hora marcada)
+        loadSlots();
       }
     });
+
+    // função usada acima (repor data e recarregar slots)
+    function initDate(){
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth()+1).padStart(2,'0');
+      const dd = String(today.getDate()).padStart(2,'0');
+      dateEl.value = `${yyyy}-${mm}-${dd}`;
+      loadSlots();
+    }
   </script>
 </body>
 </html>
