@@ -3,180 +3,455 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Barbearia Online — Marcação</title>
+  <title>Barbearia Neves — Marcação</title>
   <style>
-    body{font-family:system-ui,Arial;margin:24px;max-width:720px}
-    label{display:block;margin-top:12px;font-weight:600}
-    input,select,textarea,button{width:100%;padding:10px;margin-top:6px;font-size:16px}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .ok{background:#e7ffe7;padding:12px;border:1px solid #9be09b;margin-top:12px;display:none}
-    .err{background:#ffe7e7;padding:12px;border:1px solid #e09b9b;margin-top:12px;display:none}
-    .hint{font-size:13px;opacity:.8;margin-top:6px}
-    button{cursor:pointer}
+    :root{
+      --bg:#0b0d10;
+      --card:#12161c;
+      --muted:#aeb6c2;
+      --text:#ffffff;
+      --line:#2a3240;
+      --input:#0f1319;
+      --accent:#ffffff;
+
+      --okbg:#0f2a16;
+      --okline:#2bd66a;
+      --errbg:#2a1010;
+      --errline:#ff5c5c;
+
+      --slotFree:#0f1319;
+      --slotFreeBorder:#2a3240;
+      --slotBusy:#241216;
+      --slotBusyBorder:#7a2a3a;
+      --slotPick:#1a2230;
+      --slotPickBorder:#5e7aa8;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      margin:0;
+      min-height:100vh;
+      background:var(--bg);
+      color:var(--text);
+      display:flex;
+      justify-content:center;
+      padding:22px;
+    }
+
+    .wrap{width:100%; max-width:980px;}
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:18px;
+      box-shadow:0 10px 30px rgba(0,0,0,.35);
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      margin-bottom:10px;
+    }
+    .brand img{
+      width:64px;height:64px;
+      object-fit:contain;
+      border-radius:12px;
+      background:#fff;
+      padding:8px;
+    }
+    h1{margin:0;font-size:34px}
+    p{margin:6px 0 0;color:var(--muted)}
+
+    label{
+      display:block;margin-top:14px;
+      font-weight:650;color:var(--text);
+    }
+
+    input,select,textarea,button{
+      width:100%;
+      padding:12px 12px;
+      margin-top:8px;
+      font-size:16px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:var(--input);
+      color:var(--text);
+      outline:none;
+    }
+    input::placeholder, textarea::placeholder{color:#7f8aa0}
+    input:focus,select:focus,textarea:focus{
+      border-color:#55637d;
+      box-shadow:0 0 0 3px rgba(85,99,125,.25);
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+      align-items:end;
+    }
+
+    .hint{color:var(--muted);font-size:13px;margin-top:8px}
+
+    button{
+      cursor:pointer;
+      margin-top:16px;
+      background:var(--accent);
+      color:#000;
+      font-weight:750;
+      border:0;
+      transition:transform .06s ease;
+    }
+    button:active{transform:translateY(1px)}
+    button:disabled{opacity:.6; cursor:not-allowed}
+
+    .ok,.err{
+      padding:12px 12px;
+      border-radius:12px;
+      margin:12px 0 0;
+      display:none;
+      white-space:pre-wrap;
+    }
+    .ok{background:var(--okbg); border:1px solid var(--okline)}
+    .err{background:var(--errbg); border:1px solid var(--errline)}
+
+    .grid2{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:16px;
+      margin-top:14px;
+    }
+
+    .agenda{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+      background:#0e1218;
+    }
+    .agendaTop{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .agendaTitle{font-weight:750}
+    .small{color:var(--muted); font-size:13px}
+
+    .slots{
+      display:grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap:10px;
+      max-height:420px;
+      overflow:auto;
+      padding-right:6px;
+    }
+    .slot{
+      border:1px solid var(--slotFreeBorder);
+      background:var(--slotFree);
+      border-radius:12px;
+      padding:10px;
+      cursor:pointer;
+      user-select:none;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .slot .t{font-weight:800}
+    .slot .d{font-size:12px;color:var(--muted)}
+    .slot.busy{
+      background:var(--slotBusy);
+      border-color:var(--slotBusyBorder);
+      cursor:not-allowed;
+      opacity:.85;
+    }
+    .slot.pick{
+      background:var(--slotPick);
+      border-color:var(--slotPickBorder);
+      box-shadow:0 0 0 3px rgba(94,122,168,.22);
+    }
+
+    @media (max-width: 900px){
+      .grid2{grid-template-columns:1fr}
+      .row{grid-template-columns:1fr}
+      h1{font-size:28px}
+      .slots{grid-template-columns: 1fr}
+    }
   </style>
 </head>
 <body>
-  <h1>Barbearia Neves</h1>
-  <p>Preenche e confirma. A marcação entra automaticamente na agenda.</p>
-
-  <div id="ok" class="ok"></div>
-  <div id="err" class="err"></div>
-
-  <form id="f">
-    <label>Nome</label>
-    <input name="name" required placeholder="Nome do cliente">
-
-    <div class="row">
-      <div>
-        <label>Telefone</label>
-        <input name="phone" required placeholder="9xx xxx xxx">
+  <div class="wrap">
+    <div class="card">
+      <div class="brand">
+        <img src="logo.jpg" alt="Logo Barbearia Neves">
+        <div>
+          <h1>Barbearia Neves</h1>
+          <p>Escolhe um horário livre e confirma. A marcação entra automaticamente na agenda.</p>
+        </div>
       </div>
-      <div>
-        <label>Email (opcional)</label>
-        <input name="email" type="email" placeholder="email@exemplo.com">
+
+      <div id="ok" class="ok"></div>
+      <div id="err" class="err"></div>
+
+      <div class="grid2">
+        <!-- FORM -->
+        <div>
+          <form id="f" autocomplete="on">
+            <label>Nome</label>
+            <input name="name" required placeholder="Nome do cliente">
+
+            <div class="row">
+              <div>
+                <label>Telefone</label>
+                <input name="phone" required placeholder="9xx xxx xxx" inputmode="tel">
+              </div>
+              <div>
+                <label>Email (opcional)</label>
+                <input name="email" type="email" placeholder="email@exemplo.com">
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label>Serviço</label>
+                <select name="service" id="service" required>
+                  <option value="Corte">Corte</option>
+                  <option value="Barba">Barba</option>
+                  <option value="Corte+Barba">Corte+Barba</option>
+                </select>
+              </div>
+              <div>
+                <label>Barbeiro</label>
+                <select name="barber" id="barber" required>
+                  <option value="Pedro">Pedro Neves</option>
+                  <option value="Joao">João Leite</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label>Data</label>
+                <input name="date" id="date" type="date" required>
+              </div>
+              <div>
+                <label>Hora (escolhe na agenda)</label>
+                <!-- agora é hidden, vem da grelha -->
+                <input name="time" id="time" type="text" required placeholder="Escolhe uma hora na agenda" readonly>
+              </div>
+            </div>
+
+            <label>Duração (min) — múltiplo de 30</label>
+            <input name="dur" id="dur" type="number" min="30" max="240" step="30" value="30" required>
+            <div class="hint">Só aparecem horários compatíveis com a duração (30/60/90...).</div>
+
+            <label>Notas (opcional)</label>
+            <textarea name="notes" rows="4" placeholder="Ex: atrasado 10 min, etc"></textarea>
+
+            <button id="btn" type="submit">Marcar</button>
+          </form>
+        </div>
+
+        <!-- AGENDA / SLOTS -->
+        <div class="agenda">
+          <div class="agendaTop">
+            <div>
+              <div class="agendaTitle">Agenda do dia</div>
+              <div class="small" id="agendaSub">Escolhe uma hora livre (de 30 em 30 min).</div>
+            </div>
+            <div class="small" id="agendaStatus">A carregar…</div>
+          </div>
+
+          <div class="slots" id="slots"></div>
+
+          <div class="hint" style="margin-top:10px">
+            <b>Livre</b>: podes marcar • <b>Ocupado</b>: já reservado • Clica num horário livre para preencher “Hora”.
+          </div>
+        </div>
       </div>
     </div>
-
-    <div class="row">
-      <div>
-        <label>Serviço</label>
-        <select name="service" required>
-          <option value="Corte">Corte</option>
-          <option value="Barba">Barba</option>
-          <option value="Corte+Barba">Corte+Barba</option>
-        </select>
-      </div>
-      <div>
-        <label>Barbeiro</label>
-        <select id="barber" name="barber" required>
-          <option value="Pedro">Pedro Neves</option>
-          <option value="Joao">Joao Leite</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="row">
-      <div>
-        <label>Data</label>
-        <input id="date" name="date" type="date" required>
-      </div>
-      <div>
-        <label>Hora (disponível)</label>
-        <!-- trocámos input time por select -->
-        <select id="time" name="time" required>
-          <option value="">Escolhe data/barbeiro…</option>
-        </select>
-        <div class="hint" id="timeHint">Escolhe a data e o barbeiro para ver horários livres.</div>
-      </div>
-    </div>
-
-    <label>Duração (min)</label>
-    <input id="dur" name="dur" type="number" min="10" max="240" step="5" value="30" required>
-    <div class="hint">Só aparecem horários válidos (ex: 14:30, 14:35…)</div>
-
-    <label>Notas (opcional)</label>
-    <textarea name="notes" rows="4" placeholder="Ex: atrasado 10 min, etc"></textarea>
-
-    <button id="btn" type="submit">Marcar</button>
-  </form>
+  </div>
 
   <script>
-    // 👇 Mete aqui o teu Render URL (SEM barra no fim)
+    // ✅ o teu Render URL
     const API_BASE = "https://barbearia-api-ki25.onrender.com";
+
+    // horários de trabalho (ajusta se quiseres)
+    const WORK_START = "09:00";
+    const WORK_END   = "19:00";
+    const STEP_MIN   = 30;
 
     const ok = document.getElementById('ok');
     const err = document.getElementById('err');
     const btn = document.getElementById('btn');
 
+    const slotsEl = document.getElementById('slots');
+    const agendaStatus = document.getElementById('agendaStatus');
+
     const dateEl = document.getElementById('date');
     const barberEl = document.getElementById('barber');
     const durEl = document.getElementById('dur');
     const timeEl = document.getElementById('time');
-    const timeHint = document.getElementById('timeHint');
 
     function show(el, text) { el.textContent = text; el.style.display = 'block'; }
     function hide(el) { el.style.display = 'none'; }
 
-    function setTimeOptions(items, placeholder) {
-      timeEl.innerHTML = "";
-      const opt0 = document.createElement("option");
-      opt0.value = "";
-      opt0.textContent = placeholder || "Escolhe…";
-      timeEl.appendChild(opt0);
+    function pad2(n){ return (n<10 ? "0":"") + n; }
+    function toMin(hhmm){
+      const [h,m] = hhmm.split(":").map(Number);
+      return h*60+m;
+    }
+    function toHHMM(min){
+      const h = Math.floor(min/60);
+      const m = min%60;
+      return pad2(h)+":"+pad2(m);
+    }
+    function overlaps(s1,e1,s2,e2){ return (s1<e2) && (s2<e1); }
 
-      for (const t of items) {
-        const o = document.createElement("option");
-        o.value = t;
-        o.textContent = t;
-        timeEl.appendChild(o);
-      }
+    function setTodayIfEmpty(){
+      if (dateEl.value) return;
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = pad2(d.getMonth()+1);
+      const dd = pad2(d.getDate());
+      dateEl.value = `${y}-${m}-${dd}`;
     }
 
-    async function loadSlots() {
-      hide(ok); hide(err);
+    async function fetchDay(date, barber){
+      const u = new URL(API_BASE + "/day");
+      u.searchParams.set("date", date);
+      u.searchParams.set("barber", barber);
+      const r = await fetch(u.toString());
+      const data = await r.json().catch(()=> ({}));
+      if (!r.ok) throw new Error(data.error || ("Erro HTTP " + r.status));
+      return data.items || [];
+    }
 
-      const date = dateEl.value;
-      const barber = barberEl.value;
-      const dur = durEl.value || 30;
+    function buildSlots(bookedItems, dur){
+      const booked = bookedItems.map(b => {
+        const s = toMin(b.time);
+        const e = s + (parseInt(b.dur,10) || 30);
+        return { ...b, s, e };
+      });
 
-      if (!date || !barber) {
-        setTimeOptions([], "Escolhe data/barbeiro…");
-        timeHint.textContent = "Escolhe a data e o barbeiro para ver horários livres.";
+      const start = toMin(WORK_START);
+      const end   = toMin(WORK_END);
+
+      const slots = [];
+      for (let t = start; t + dur <= end; t += STEP_MIN){
+        const s = t, e = t + dur;
+
+        let busy = null;
+        for (const b of booked){
+          if (overlaps(s,e,b.s,b.e)){
+            busy = b;
+            break;
+          }
+        }
+
+        slots.push({
+          time: toHHMM(t),
+          busy,
+        });
+      }
+      return slots;
+    }
+
+    function renderSlots(slots){
+      slotsEl.innerHTML = "";
+      const picked = timeEl.value;
+
+      if (!slots.length){
+        slotsEl.innerHTML = `<div class="small">Sem horários dentro do horário de trabalho.</div>`;
         return;
       }
 
-      timeHint.textContent = "A carregar horários...";
-      setTimeOptions([], "A carregar...");
+      for (const s of slots){
+        const div = document.createElement("div");
+        div.className = "slot" + (s.busy ? " busy" : "") + (!s.busy && s.time === picked ? " pick" : "");
 
-      try {
-        const url = `${API_BASE}/slots?date=${encodeURIComponent(date)}&barber=${encodeURIComponent(barber)}&dur=${encodeURIComponent(dur)}`;
-        const r = await fetch(url);
-        const j = await r.json().catch(()=> ({}));
-
-        if (!r.ok || !j.ok) throw new Error(j.error || ("Erro HTTP " + r.status));
-
-        if (!j.slots || !j.slots.length) {
-          setTimeOptions([], "Sem vagas nesse dia");
-          timeHint.textContent = "Não há horários livres para essa duração/barbeiro nesse dia.";
-          return;
+        if (s.busy){
+          div.innerHTML = `
+            <div class="t">${s.time} — Ocupado</div>
+            <div class="d">${escapeHtml(s.busy.name || "")} • ${escapeHtml(s.busy.service || "")}</div>
+          `;
+        } else {
+          div.innerHTML = `
+            <div class="t">${s.time} — Livre</div>
+            <div class="d">Clique para escolher</div>
+          `;
+          div.addEventListener("click", () => {
+            timeEl.value = s.time;
+            // re-render para marcar selecionado
+            renderSlots(slots.map(x => ({...x})));
+          });
         }
 
-        setTimeOptions(j.slots, "Seleciona uma hora");
-        timeHint.textContent = "Horários atualizados. Escolhe uma hora livre.";
-      } catch (ex) {
-        setTimeOptions([], "Erro a carregar");
-        timeHint.textContent = "Não foi possível carregar horários. Tenta de novo.";
-        show(err, "❌ Erro a carregar horários: " + ex.message);
+        slotsEl.appendChild(div);
       }
     }
 
-    // Atualiza slots quando muda data/barbeiro/duração
-    dateEl.addEventListener("change", loadSlots);
-    barberEl.addEventListener("change", loadSlots);
-    durEl.addEventListener("change", loadSlots);
+    function escapeHtml(s){
+      return (s||"").replace(/[&<>"']/g, c => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+      }[c]));
+    }
 
-    // (opcional) meter data de hoje automaticamente
-    (function initDate(){
-      const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth()+1).padStart(2,'0');
-      const dd = String(today.getDate()).padStart(2,'0');
-      if (!dateEl.value) dateEl.value = `${yyyy}-${mm}-${dd}`;
-      loadSlots();
-    })();
+    async function refreshAgenda(){
+      setTodayIfEmpty();
+      agendaStatus.textContent = "A carregar…";
 
+      const date = dateEl.value;
+      const barber = barberEl.value;
+      const dur = parseInt(durEl.value,10) || 30;
+
+      // limpa hora se já não for válida
+      timeEl.value = "";
+
+      try{
+        const items = await fetchDay(date, barber);
+        const slots = buildSlots(items, dur);
+        renderSlots(slots);
+        agendaStatus.textContent = `${items.length} marcação(ões) • ${barber} • ${date}`;
+      }catch(ex){
+        slotsEl.innerHTML = "";
+        agendaStatus.textContent = "Erro a carregar";
+        show(err, "❌ Erro ao carregar agenda: " + ex.message);
+      }
+    }
+
+    // Atualiza agenda quando muda data/barbeiro/duração
+    dateEl.addEventListener("change", refreshAgenda);
+    barberEl.addEventListener("change", refreshAgenda);
+    durEl.addEventListener("change", refreshAgenda);
+
+    // Submeter
     document.getElementById('f').addEventListener('submit', async (e) => {
       e.preventDefault();
-      hide(ok); hide(err);
+      hide(err);
+      // ok NÃO some sozinho — fica até próxima marcação
+      btn.disabled = true;
 
       const fd = new FormData(e.target);
       const payload = Object.fromEntries(fd.entries());
 
-      // time vem do select já em HH:MM
-      if (payload.time && payload.time.length >= 5) payload.time = payload.time.slice(0,5);
+      // precisa ter hora escolhida
+      if (!payload.time || payload.time.length < 5){
+        btn.disabled = false;
+        show(err, "❌ Escolhe uma hora livre na agenda.");
+        return;
+      }
+      payload.time = payload.time.slice(0,5);
 
-      btn.disabled = true;
-      btn.textContent = "A marcar...";
+      // dur múltiplo de 30
+      payload.dur = parseInt(payload.dur,10) || 30;
+      if (payload.dur % 30 !== 0){
+        btn.disabled = false;
+        show(err, "❌ Duração tem de ser múltiplo de 30 (30, 60, 90…).");
+        return;
+      }
 
       try {
         const r = await fetch(API_BASE + "/book", {
@@ -184,41 +459,41 @@
           headers: {"Content-Type":"application/json"},
           body: JSON.stringify(payload)
         });
-
         const data = await r.json().catch(()=> ({}));
-
-        // conflito -> 409 com { ok:false, error:"conflict", conflict_with:{...}}
-        if (r.status === 409 && data && data.error === "conflict") {
-          const c = data.conflict_with || {};
-          throw new Error(`Horário ocupado. Já existe: ${c.time || "?"} (${c.dur || "?"} min) — ${c.name || ""}`);
-        }
-
         if (!r.ok) throw new Error(data.error || ("Erro HTTP " + r.status));
 
-        show(ok, "✅ Marcação recebida! ID: " + (data.id || "(sem id)") + " — vai entrar na agenda em segundos.");
-        e.target.reset();
+        // ✅ ID aparece e NÃO desaparece
+        show(ok,
+          "✅ Marcação confirmada!\n" +
+          "ID: " + (data.id || "(sem id)") + "\n" +
+          "Data: " + payload.date + "  Hora: " + payload.time + "\n" +
+          "Barbeiro: " + payload.barber + "  Serviço: " + payload.service
+        );
 
-        // repõe data para hoje e recarrega slots
-        initDate();
+        // mantém nome/telefone/email se quiseres (para marcar outra)
+        const keepName = payload.name;
+        const keepPhone = payload.phone;
+        const keepEmail = payload.email;
+
+        e.target.reset();
+        setTodayIfEmpty();
+        document.querySelector('input[name="name"]').value = keepName || "";
+        document.querySelector('input[name="phone"]').value = keepPhone || "";
+        document.querySelector('input[name="email"]').value = keepEmail || "";
+
+        // recarrega agenda para já marcar ocupado
+        await refreshAgenda();
+
       } catch (ex) {
         show(err, "❌ Não foi possível marcar: " + ex.message);
       } finally {
         btn.disabled = false;
-        btn.textContent = "Marcar";
-        // recarrega slots (para tirar a hora marcada)
-        loadSlots();
       }
     });
 
-    // função usada acima (repor data e recarregar slots)
-    function initDate(){
-      const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth()+1).padStart(2,'0');
-      const dd = String(today.getDate()).padStart(2,'0');
-      dateEl.value = `${yyyy}-${mm}-${dd}`;
-      loadSlots();
-    }
+    // arranque
+    setTodayIfEmpty();
+    refreshAgenda();
   </script>
 </body>
 </html>
